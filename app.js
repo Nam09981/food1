@@ -126,3 +126,8 @@ $("#installBtn").onclick = async () => {
   $("#installBar").classList.remove("show");
 };
 $("#dismissInstall").onclick = () => $("#installBar").classList.remove("show");
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  });
+}
