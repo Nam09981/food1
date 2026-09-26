@@ -13,43 +13,311 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ครัวโลก — สมุดสูตรอาหารนานาชาติ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Libre+Franklin:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#241c14; --paper:#f4ecd8; --paper2:#ece0c4; --saffron:#d99a1b;
+  --saffron-d:#a97511; --teal:#1f5c53; --chili:#b23a2e; --muted:#8a7960;
+  --line:#d8c9a6; --card:#fbf6ea;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#f3ead7; --paper:#1b1712; --paper2:#241f18; --saffron:#e8b13c;
+    --saffron-d:#f2c565; --teal:#4fae9c; --chili:#e2685a; --muted:#a8977f;
+    --line:#3a3226; --card:#241f18;
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#f3ead7; --paper:#1b1712; --paper2:#241f18; --saffron:#e8b13c;
+  --saffron-d:#f2c565; --teal:#4fae9c; --chili:#e2685a; --muted:#a8977f;
+  --line:#3a3226; --card:#241f18;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  font-family:'Libre Franklin',system-ui,-apple-system,sans-serif;
+  background:var(--paper); color:var(--ink);
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:calc(78px + env(safe-area-inset-bottom,0px));
+  min-height:100vh; -webkit-font-smoothing:antialiased;
+}
+header{background:var(--paper2); padding:26px 20px 20px; border-bottom:1px solid var(--line)}
+header .eyebrow{font-size:12px;color:var(--saffron-d);font-weight:700}
+header h1{font-family:'Fraunces',serif; font-weight:700; font-size:30px; margin-top:4px; line-height:1.15}
+header p{font-size:13.5px;color:var(--muted);margin-top:6px;max-width:32ch;line-height:1.5}
+
+.search-row{padding:16px 20px 0; display:flex; gap:8px}
+#search{flex:1; font-family:inherit; font-size:15px; padding:12px 14px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink)}
+#search:focus{outline:2px solid var(--saffron); outline-offset:1px}
+#shuffleBtn{font-family:inherit; font-size:13px; font-weight:700; color:var(--card); background:var(--teal); border:none; border-radius:10px; padding:0 16px; cursor:pointer; white-space:nowrap}
+#shuffleBtn:active{transform:scale(.97)}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding:16px 20px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto; font-family:inherit; font-size:13px; font-weight:500; padding:7px 14px; border-radius:999px; background:var(--card); border:1px solid var(--line); color:var(--ink); cursor:pointer; white-space:nowrap}
+.chip.active{background:var(--teal); border-color:var(--teal); color:var(--card); font-weight:700}
+
+.count-row{padding:10px 20px 0; font-size:12.5px; color:var(--muted)}
+main{padding:14px 20px 24px}
+.list{display:flex; flex-direction:column; gap:12px}
+
+.entry{position:relative; display:flex; gap:14px; align-items:flex-start; background:var(--card); border:1px solid var(--line); border-radius:4px; padding:14px 44px 14px 16px; cursor:pointer}
+.entry::before{content:""; position:absolute; left:0; top:12px; bottom:12px; width:3px; background:var(--saffron)}
+.entry .emoji{font-size:30px; line-height:1; margin-top:2px}
+.entry .meta-top{font-size:11px; font-weight:700; color:var(--teal)}
+.entry h3{font-family:'Fraunces',serif; font-size:18px; font-weight:600; margin:2px 0 5px; line-height:1.25}
+.entry .sub{font-size:12px; color:var(--muted)}
+.fav-btn{position:absolute; right:10px; top:14px; background:none; border:none; font-size:19px; cursor:pointer; color:var(--line); line-height:1}
+.fav-btn.active{color:var(--chili)}
+.empty{text-align:center; padding:50px 20px; color:var(--muted); font-size:14px}
+
+nav.tabbar{position:fixed; bottom:0; left:0; right:0; background:var(--paper2); border-top:1px solid var(--line); display:flex; z-index:20; padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabbar button{flex:1; background:none; border:none; padding:10px 4px 8px; font-family:inherit; font-size:11.5px; color:var(--muted); display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer}
+nav.tabbar button .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:0}
+nav.tabbar button.active{color:var(--saffron-d); font-weight:700}
+nav.tabbar button.active .dot{opacity:1}
+
+.install-toast{position:fixed; bottom:calc(72px + env(safe-area-inset-bottom,0px)); left:14px; right:14px; background:var(--ink); color:var(--paper); padding:11px 14px; border-radius:12px; display:none; align-items:center; justify-content:space-between; font-size:13px; z-index:30}
+.install-toast.show{display:flex}
+.install-toast button{background:var(--saffron); color:var(--ink); border:none; padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; font-family:inherit; cursor:pointer}
+
+/* full-screen recipe reader */
+.reader{position:fixed; inset:0; background:var(--paper); z-index:100; transform:translateX(100%); transition:transform .32s cubic-bezier(.22,.68,0,1); overflow-y:auto; display:flex; flex-direction:column}
+.reader.open{transform:translateX(0)}
+.reader-hero{position:relative; padding:calc(20px + env(safe-area-inset-top,0px)) 20px 30px; background:linear-gradient(135deg,var(--saffron),var(--chili)); flex-shrink:0}
+.reader-hero .row{display:flex; align-items:center; justify-content:space-between}
+.icon-btn{width:38px; height:38px; border-radius:50%; border:none; background:rgba(255,255,255,.28); color:#fff; font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(2px)}
+.icon-btn.fav.active{background:#fff; color:var(--chili)}
+.reader-hero .big-emoji{font-size:76px; text-align:center; margin:14px 0 4px; line-height:1}
+.reader-hero .cuisine-tag{text-align:center; font-size:12.5px; font-weight:700; color:#fff; opacity:.92}
+.reader-hero h2{font-family:'Fraunces',serif; font-weight:900; font-size:27px; text-align:center; color:#fff; margin-top:6px; line-height:1.2}
+.reader-meta{display:flex; justify-content:center; gap:10px; padding:16px 20px 0}
+.reader-meta span{font-size:12px; background:var(--card); border:1px solid var(--line); color:var(--muted); padding:5px 12px; border-radius:999px}
+.reader-body{padding:22px 22px 50px; max-width:560px; margin:0 auto; width:100%}
+.reader-body h4{font-family:'Fraunces',serif; font-size:17px; font-weight:700; color:var(--saffron-d); margin:22px 0 12px; display:flex; align-items:center; gap:8px}
+.reader-body h4:first-child{margin-top:0}
+.ing-list{list-style:none; display:flex; flex-direction:column; gap:9px}
+.ing-list li{display:flex; align-items:center; gap:11px; font-size:14.5px; padding:10px 12px; background:var(--card); border:1px solid var(--line); border-radius:8px; cursor:pointer; user-select:none}
+.ing-list li .box{width:19px; height:19px; border-radius:5px; border:2px solid var(--teal); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--card)}
+.ing-list li.checked .box{background:var(--teal)}
+.ing-list li.checked span.txt{text-decoration:line-through; color:var(--muted)}
+.step-list{list-style:none; display:flex; flex-direction:column}
+.step-list li{display:flex; gap:14px; position:relative; padding-bottom:22px}
+.step-list li:last-child{padding-bottom:0}
+.step-list li::before{content:""; position:absolute; left:14px; top:30px; bottom:0; width:2px; background:var(--line)}
+.step-list li:last-child::before{display:none}
+.step-num{width:29px; height:29px; border-radius:50%; background:var(--teal); color:var(--card); font-family:'Fraunces',serif; font-weight:700; font-size:13.5px; display:flex; align-items:center; justify-content:center; flex-shrink:0; z-index:1}
+.step-list p{font-size:14.5px; line-height:1.65; padding-top:3px}
+</style>
+</head>
+<body>
 
 <header>
-  <h1>🍽️ ครัวโลก</h1>
-  <p>สูตรอาหารและวิธีทำจากทั่วทุกมุมโลก</p>
+  <div class="eyebrow">สมุดสูตรอาหาร</div>
+  <h1>ครัวโลก</h1>
+  <p>รวมสูตรอาหารจากทั่วทุกมุมโลก พร้อมวิธีทำทีละขั้นตอน</p>
 </header>
 
-<div class="search-wrap">
+<div class="search-row">
   <input id="search" type="text" placeholder="ค้นหาเมนู เช่น ผัดไทย, ซูชิ...">
+  <button id="shuffleBtn">สุ่มเมนู</button>
 </div>
 
 <div class="chips" id="chips"></div>
+<div class="count-row" id="count"></div>
 
-<div class="toolbar-row">
-  <span id="count" class="count"></span>
-  <button id="shuffleBtn" class="shuffle-btn">🎲 สุ่มเมนู</button>
-</div>
+<main><div class="list" id="list"></div></main>
 
-<main>
-  <div class="grid" id="grid"></div>
-</main>
-
-<div class="install-bar" id="installBar">
-  <span>📲 ติดตั้งแอปไว้ในเครื่อง</span>
-  <div>
-    <button id="installBtn">ติดตั้ง</button>
-    <button id="dismissInstall" style="background:transparent;color:#fff;margin-left:4px">✕</button>
-  </div>
-</div>
-
-<div class="overlay" id="overlay">
-  <div class="sheet" id="sheet-content"></div>
+<div class="install-toast" id="installToast">
+  <span>ติดตั้งแอปนี้ไว้ในเครื่อง</span>
+  <button id="installBtn">ติดตั้ง</button>
 </div>
 
 <nav class="tabbar">
-  <button class="active" data-tab="home"><span>🏠</span>เมนูทั้งหมด</button>
-  <button data-tab="fav"><span>❤️</span>รายการโปรด</button>
+  <button class="active" data-tab="home"><span class="dot"></span>เมนูทั้งหมด</button>
+  <button data-tab="fav"><span class="dot"></span>รายการโปรด</button>
 </nav>
+
+<div class="reader" id="reader">
+  <div class="reader-hero">
+    <div class="row">
+      <button class="icon-btn" id="backBtn" aria-label="ย้อนกลับ">←</button>
+      <button class="icon-btn fav" id="readerFav" aria-label="บันทึกรายการโปรด">♡</button>
+    </div>
+    <div class="big-emoji" id="readerEmoji"></div>
+    <div class="cuisine-tag" id="readerCuisine"></div>
+    <h2 id="readerName"></h2>
+  </div>
+  <div class="reader-meta" id="readerMeta"></div>
+  <div class="reader-body">
+    <h4>วัตถุดิบ</h4>
+    <ul class="ing-list" id="readerIngredients"></ul>
+    <h4>วิธีทำ</h4>
+    <ol class="step-list" id="readerSteps"></ol>
+  </div>
+</div>
+
+<script>
+const RECIPES = [
+ {id:1,name:"ผัดไทยกุ้งสด",cuisine:"ไทย",emoji:"🍜",time:"25 นาที",diff:"ง่าย",ingredients:["เส้นจันท์ 200 ก.","กุ้งสด 8 ตัว","เต้าหู้เหลือง","ไข่ไก่ 1 ฟอง","ถั่วงอก ใบกุยช่าย","น้ำมะขามเปียก น้ำปลา น้ำตาลปี๊บ"],steps:["แช่เส้นจันท์ในน้ำจนนิ่ม","ผัดกุ้งกับเต้าหู้ให้สุก ตอกไข่ลงผัด","ใส่เส้น ปรุงรสด้วยมะขาม น้ำปลา น้ำตาล","ใส่ถั่วงอกกับใบกุยช่าย ผัดเร็วๆ แล้วเสิร์ฟ"]},
+ {id:2,name:"ต้มยำกุ้ง",cuisine:"ไทย",emoji:"🍲",time:"30 นาที",diff:"ปานกลาง",ingredients:["กุ้งแม่น้ำ 6 ตัว","ตะไคร้ ข่า ใบมะกรูด","พริกขี้หนู","น้ำมะนาว น้ำปลา","เห็ดฟาง น้ำพริกเผา"],steps:["ต้มน้ำซุปกับตะไคร้ ข่า ใบมะกรูด","ใส่เห็ดฟางและกุ้งต้มจนสุก","ปรุงรสด้วยน้ำปลาและน้ำพริกเผา","ปิดไฟ ใส่น้ำมะนาวและพริกขี้หนูบุบ"]},
+ {id:3,name:"แกงเขียวหวานไก่",cuisine:"ไทย",emoji:"🥥",time:"35 นาที",diff:"ปานกลาง",ingredients:["พริกแกงเขียวหวาน 3 ช้อนโต๊ะ","น้ำกะทิ 400 มล.","เนื้อไก่ 300 ก.","มะเขือเปราะ ใบโหระพา","ใบมะกรูดฉีก น้ำปลา น้ำตาลปี๊บ"],steps:["เคี่ยวหัวกะทิกับพริกแกงจนแตกมัน","ใส่ไก่ผัดให้สุก","เติมกะทิที่เหลือ ต้มเดือด ใส่มะเขือเปราะ ปรุงรส","ใส่ใบโหระพาและใบมะกรูดก่อนปิดไฟ"]},
+ {id:4,name:"ส้มตำไทย",cuisine:"ไทย",emoji:"🥗",time:"15 นาที",diff:"ง่าย",ingredients:["มะละกอเส้น 2 ถ้วย","มะเขือเทศลูกเล็ก ถั่วฝักยาว","กระเทียม พริกขี้หนู","มะนาว น้ำปลา น้ำตาลปี๊บ","ถั่วลิสงคั่ว กุ้งแห้ง"],steps:["ตำกระเทียมพริกให้พอแตก","ใส่มะเขือเทศ ถั่วฝักยาว ตำเบาๆ","ใส่มะละกอ ปรุงรสด้วยมะนาว น้ำปลา น้ำตาล","ตำเบาๆให้เข้ากัน โรยถั่วลิสงและกุ้งแห้ง"]},
+ {id:5,name:"สปาเก็ตตี้คาร์โบนาร่า",cuisine:"อิตาเลียน",emoji:"🍝",time:"20 นาที",diff:"ง่าย",ingredients:["สปาเก็ตตี้ 200 ก.","เบคอน 100 ก.","ไข่แดง 3 ฟอง","พาร์เมซานขูด","พริกไทยดำ"],steps:["ต้มเส้นในน้ำเกลือให้สุกได้ที่","ผัดเบคอนจนกรอบ","ตีไข่แดงกับชีสให้เข้ากัน","ผสมเส้นร้อนกับเบคอน ปิดไฟก่อนใส่ไข่ คนเร็วๆให้ครีมมี่"]},
+ {id:6,name:"พิซซ่ามาร์เกอริต้า",cuisine:"อิตาเลียน",emoji:"🍕",time:"40 นาที",diff:"ปานกลาง",ingredients:["แป้งพิซซ่า 1 ก้อน","ซอสมะเขือเทศ","มอสซาเรลล่า","ใบโหระพา น้ำมันมะกอก"],steps:["รีดแป้งให้เป็นแผ่นบาง","ทาซอสมะเขือเทศให้ทั่ว โรยมอสซาเรลล่า","อบที่ 250°C 10-12 นาที","โรยใบโหระพาและน้ำมันมะกอกก่อนเสิร์ฟ"]},
+ {id:7,name:"ริซอตโต้เห็ด",cuisine:"อิตาเลียน",emoji:"🍚",time:"35 นาที",diff:"ปานกลาง",ingredients:["ข้าวอาร์โบริโอ 1.5 ถ้วย","เห็ดรวม 200 ก. หอมใหญ่สับ","ไวน์ขาว 100 มล.","น้ำซุปผัก 700 มล.","เนย พาร์เมซาน"],steps:["ผัดหอมใหญ่กับเนยจนใส","ใส่เห็ดผัดให้หอม ใส่ข้าวคั่วสั้นๆ","เทไวน์ขาวให้งวด","ค่อยๆเติมน้ำซุปทีละกระบวย คนตลอด","ปิดไฟ ใส่เนยและพาร์เมซาน คนให้ครีมมี่"]},
+ {id:8,name:"ซูชิม้วนแคลิฟอร์เนีย",cuisine:"ญี่ปุ่น",emoji:"🍣",time:"35 นาที",diff:"ปานกลาง",ingredients:["ข้าวซูชิ 2 ถ้วย","สาหร่ายโนริ 4 แผ่น","ปูอัด อโวคาโด แตงกวา","น้ำส้มสายชูซูชิ"],steps:["หุงข้าวแล้วคลุกน้ำส้มสายชูซูชิ","วางโนริ โปะข้าวให้ทั่ว พลิกกลับ","วางไส้ปูอัด อโวคาโด แตงกวา ม้วนให้แน่น","หั่นเป็นชิ้นพอดีคำ เสิร์ฟกับโชยุ"]},
+ {id:9,name:"ราเมนมิโสะ",cuisine:"ญี่ปุ่น",emoji:"🍜",time:"45 นาที",diff:"ปานกลาง",ingredients:["เส้นราเมน 1 ก้อน","มิโสะ 2 ช้อนโต๊ะ","น้ำซุปกระดูกหมู","หมูชาชู ไข่ต้มยางมะตูม","ต้นหอม สาหร่าย"],steps:["ต้มน้ำซุปให้ร้อน ละลายมิโสะลงไป","ลวกเส้นราเมนตามเวลาบนซอง","ใส่เส้นลงชาม เทน้ำซุปตาม","จัดหน้าด้วยหมูชาชู ไข่ ต้นหอม สาหร่าย"]},
+ {id:10,name:"ทาโกยากิ",cuisine:"ญี่ปุ่น",emoji:"🐙",time:"30 นาที",diff:"ปานกลาง",ingredients:["แป้งทาโกยากิ 1 ถ้วย","น้ำซุปดาชิ 1.5 ถ้วย","หนวดปลาหมึกหั่นชิ้น","ต้นหอมซอย","ซอสทาโกยากิ มายองเนส คัตสึโอบุชิ"],steps:["ผสมแป้งกับน้ำซุปดาชิให้เนียน","เทแป้งลงพิมพ์ทาโกยากิที่ทาน้ำมันแล้ว","ใส่หมึกและต้นหอมลงในแต่ละหลุม","พลิกลูกให้เป็นทรงกลมจนสุกทั่ว","ราดซอส มายองเนส โรยคัตสึโอบุชิ"]},
+ {id:11,name:"ทาโก้เนื้อวัว",cuisine:"เม็กซิกัน",emoji:"🌮",time:"25 นาที",diff:"ง่าย",ingredients:["ตอร์ตียา 6 แผ่น","เนื้อบดวัว 300 ก.","ผงทาโก้","ผักกาดหอม มะเขือเทศ ชีสเชดดาร์"],steps:["ผัดเนื้อบดกับหอมใหญ่จนสุก","ใส่ผงทาโก้และน้ำเล็กน้อย เคี่ยวให้ข้น","อุ่นตอร์ตียาให้นิ่ม","ตักเนื้อใส่ตอร์ตียา โปะผัก ชีส ซัลซ่า"]},
+ {id:12,name:"กัวคาโมเล่",cuisine:"เม็กซิกัน",emoji:"🥑",time:"10 นาที",diff:"ง่าย",ingredients:["อโวคาโดสุก 2 ลูก","มะนาว 1 ลูก","หอมแดงสับ พริกจาลาปิโนสับ","ผักชีสับ เกลือ"],steps:["บดอโวคาโดหยาบๆในชาม","ใส่หอมแดง พริกจาลาปิโน ผักชี","บีบน้ำมะนาว ปรุงรสด้วยเกลือ","คลุกเบาๆ เสิร์ฟกับนาโช่"]},
+ {id:13,name:"เอนชิลาดาไก่",cuisine:"เม็กซิกัน",emoji:"🌯",time:"45 นาที",diff:"ปานกลาง",ingredients:["ตอร์ตียาแป้งข้าวโพด 8 แผ่น","ไก่ฉีก 300 ก.","ซอสเอนชิลาดา","ชีสเชดดาร์ หอมใหญ่ซอย ผักชี"],steps:["ห่อไก่ฉีกในตอร์ตียาแต่ละแผ่น","เรียงในถาดอบ ราดซอสเอนชิลาดาให้ทั่ว","โรยชีสด้านบน อบที่ 190°C 20 นาที","โรยหอมใหญ่และผักชีก่อนเสิร์ฟ"]},
+ {id:14,name:"บัตเตอร์ชิกเก้น",cuisine:"อินเดีย",emoji:"🍛",time:"50 นาที",diff:"ปานกลาง",ingredients:["อกไก่ 400 ก.","โยเกิร์ต การัมมาซาลา","มะเขือเทศบด","เนย วิปปิ้งครีม","กระเทียม ขิง"],steps:["หมักไก่กับโยเกิร์ตและเครื่องเทศ 1 ชม.","ย่างหรือทอดไก่ให้สุก","ผัดกระเทียมขิงกับเนย ใส่มะเขือเทศบด เคี่ยว","ใส่ไก่และครีม เคี่ยวจนซอสเข้าเนื้อ เสิร์ฟกับข้าว"]},
+ {id:15,name:"ไก่ทิกก้ามาซาล่า",cuisine:"อินเดีย",emoji:"🍢",time:"55 นาที",diff:"ปานกลาง",ingredients:["อกไก่หั่นชิ้น 400 ก.","โยเกิร์ต ผงทิกก้ามาซาล่า","มะเขือเทศบด","หอมใหญ่ กระเทียม ขิง","ครีม ผักชี"],steps:["หมักไก่กับโยเกิร์ตและเครื่องเทศอย่างน้อย 1 ชม.","ย่างไก่ให้มีรอยไหม้เล็กน้อย","ผัดหอม กระเทียม ขิง ใส่มะเขือเทศบดเคี่ยว","ใส่ไก่ที่ย่างแล้วลงเคี่ยวในซอส เติมครีม","โรยผักชี เสิร์ฟกับข้าวบาสมาติ"]},
+ {id:16,name:"ดาลทาร์กา (แกงถั่ว)",cuisine:"อินเดีย",emoji:"🍲",time:"40 นาที",diff:"ง่าย",ingredients:["ถั่วเลนทิลเหลือง 1 ถ้วย","ขมิ้น เกลือ","กระเทียม ยี่หร่า หอมแดง","มะเขือเทศ เนยใส(กี)"],steps:["ต้มถั่วเลนทิลกับขมิ้นและเกลือจนนุ่ม","บดถั่วให้เนียนพอประมาณ","เจียวกระเทียม ยี่หร่า หอมแดงในเนยใสจนหอม","เทเจียวราดลงบนถั่ว คนให้เข้ากัน เสิร์ฟกับข้าวหรือโรตี"]},
+ {id:17,name:"ครัวซองต์เนย",cuisine:"ฝรั่งเศส",emoji:"🥐",time:"3 ชม.",diff:"ยาก",ingredients:["แป้งขนมปัง 500 ก.","เนยแผ่น 250 ก.","ยีสต์ 10 ก.","นม 250 มล. น้ำตาล เกลือ"],steps:["นวดแป้งกับยีสต์ นม จนเนียน พักตู้เย็น","ห่อเนยแผ่นในแป้ง รีดพับ 3 ทบ 3 รอบ พักเย็นระหว่างรอบ","รีดแป้งบางแล้วตัดเป็นสามเหลี่ยม ม้วนเป็นทรงครัวซองต์","พักให้ขึ้นฟู 1-2 ชม. ทาไข่ อบที่ 200°C 15-18 นาที"]},
+ {id:18,name:"บูยาเบสซุปปลา",cuisine:"ฝรั่งเศส",emoji:"🐟",time:"1 ชม.",diff:"ปานกลาง",ingredients:["ปลาทะเลรวม 500 ก.","หอยแมลงภู่","มะเขือเทศ หอมใหญ่ กระเทียม","หญ้าฝรั่น เปลือกส้ม น้ำซุปปลา"],steps:["ผัดหอมกระเทียมมะเขือเทศให้หอม","เติมน้ำซุปปลาและหญ้าฝรั่น ต้มเดือด","ใส่ปลาชิ้นใหญ่ต้มก่อน ตามด้วยหอยแมลงภู่","เคี่ยวจนปลาสุกและซุปเข้มข้น เสิร์ฟกับขนมปังกรอบ"]},
+ {id:19,name:"ราตาตูยผัก",cuisine:"ฝรั่งเศส",emoji:"🍆",time:"45 นาที",diff:"ง่าย",ingredients:["มะเขือม่วง บวบ พริกหวาน","มะเขือเทศ หอมใหญ่ กระเทียม","น้ำมันมะกอก โหระพา"],steps:["หั่นผักทุกชนิดเป็นแว่นบาง","ผัดหอมกระเทียมกับน้ำมันมะกอกจนหอม","เรียงผักสลับกันในถาดอบ ราดซอสมะเขือเทศ","อบที่ 180°C 30 นาที โรยโหระพา"]},
+ {id:20,name:"หมาล่าผัดผัก",cuisine:"จีน",emoji:"🥘",time:"20 นาที",diff:"ง่าย",ingredients:["ผักรวม (บล็อคโคลี่ เห็ด แครอท)","พริกหมาล่า/ผงมาล่า","กระเทียม ขิงสับ","ซอสหอยนางรม น้ำมันงา"],steps:["ตั้งกระทะร้อน ใส่น้ำมัน ผัดกระเทียมขิงให้หอม","ใส่พริกมาล่าผัดให้หอมออก","ใส่ผักทั้งหมดผัดไฟแรง ปรุงรสด้วยซอสหอยนางรม","หยดน้ำมันงาก่อนปิดไฟ"]},
+ {id:21,name:"เกี๊ยวซ่านึ่ง",cuisine:"จีน",emoji:"🥟",time:"40 นาที",diff:"ปานกลาง",ingredients:["แผ่นเกี๊ยว","หมูบด กุ้งสับ","กะหล่ำปลีสับ","ขิง ต้นหอม ซีอิ๊ว น้ำมันงา"],steps:["ผสมหมูบด กุ้งสับ กะหล่ำปลี ขิง ต้นหอม และซีอิ๊ว","ตักไส้ห่อในแผ่นเกี๊ยวเป็นจีบ","นึ่งในลังถึงรองใบกะหล่ำปลี 12-15 นาที","เสิร์ฟกับน้ำจิ้มซีอิ๊วน้ำส้มสายชู"]},
+ {id:22,name:"หมูผัดเปรี้ยวหวาน",cuisine:"จีน",emoji:"🍖",time:"25 นาที",diff:"ง่าย",ingredients:["หมูสันคอชุบแป้งทอด","สับปะรด พริกหวาน หอมใหญ่","ซอสมะเขือเทศ น้ำส้มสายชู น้ำตาล"],steps:["ทอดหมูชุบแป้งจนกรอบเหลือง","ผัดพริกหวาน หอมใหญ่ สับปะรดสั้นๆ","ผสมซอสมะเขือเทศ น้ำส้มสายชู น้ำตาล เคี่ยวให้ข้น","ใส่หมูทอดคลุกเคล้ากับซอสให้ทั่ว"]},
+ {id:23,name:"บิบิมบับ",cuisine:"เกาหลี",emoji:"🍚",time:"35 นาที",diff:"ปานกลาง",ingredients:["ข้าวสวย 2 ถ้วย","เนื้อวัวหั่นบาง","แครอท ผักโขม ถั่วงอก","ไข่ดาว ซอสโกชูจัง"],steps:["ผัดเนื้อวัวกับซอสโชยุและกระเทียม","ลวกผักโขมและถั่วงอกแยกกัน คลุกน้ำมันงา","ผัดแครอทซอยไฟแรงสั้นๆ","จัดข้าวใส่ชาม เรียงผักและเนื้อ ใส่ไข่ดาว ราดโกชูจัง"]},
+ {id:24,name:"คิมบับ",cuisine:"เกาหลี",emoji:"🍙",time:"30 นาที",diff:"ปานกลาง",ingredients:["ข้าวสวยคลุกน้ำมันงา","สาหร่ายคิมบับ","แครอทผัด ไข่เจียวหั่นแท่ง","แตงกวาดอง ปูอัด"],steps:["คลุกข้าวกับน้ำมันงาและเกลือเล็กน้อย","วางสาหร่ายบนซูชิม้วน โปะข้าวให้ทั่ว","เรียงไส้ทั้งหมดตรงกลาง","ม้วนให้แน่น หั่นเป็นชิ้นพอดีคำ"]},
+ {id:25,name:"ทัตบกกี",cuisine:"เกาหลี",emoji:"🌶️",time:"20 นาที",diff:"ง่าย",ingredients:["ต๊อกเกาหลี","ปลาเค้กเกาหลี","ซอสโกชูจัง น้ำตาล ซีอิ๊ว","ต้นหอม"],steps:["ต้มน้ำซุปให้เดือด ใส่ต๊อกกับปลาเค้ก","ผสมโกชูจัง น้ำตาล ซีอิ๊วลงไป","เคี่ยวจนซอสข้นและต๊อกนุ่ม","โรยต้นหอมก่อนเสิร์ฟ"]},
+ {id:26,name:"เปาะเปี๊ยะเวียดนาม",cuisine:"เวียดนาม",emoji:"🥗",time:"25 นาที",diff:"ง่าย",ingredients:["แผ่นแป้งเปาะเปี๊ยะญวน","กุ้งต้ม 8 ตัว","วุ้นเส้น","ผักกาดหอม สะระแหน่","น้ำจิ้มถั่ว/น้ำปลาเปรี้ยวหวาน"],steps:["ลวกวุ้นเส้นให้สุก พักให้สะเด็ดน้ำ","จุ่มแผ่นแป้งในน้ำอุ่นให้นิ่ม","วางผักกาดหอม วุ้นเส้น สะระแหน่ และกุ้ง","ม้วนให้แน่นเป็นแท่ง เสิร์ฟพร้อมน้ำจิ้ม"]},
+ {id:27,name:"เฝอเนื้อ",cuisine:"เวียดนาม",emoji:"🍜",time:"1 ชม.",diff:"ปานกลาง",ingredients:["เส้นเฝอ","เนื้อวัวหั่นบาง","น้ำซุปกระดูกวัว","อบเชย โป๊ยกั๊ก ขิงเผา","ถั่วงอก โหระพา มะนาว"],steps:["เคี่ยวน้ำซุปกระดูกกับเครื่องเทศหลายชั่วโมง","ลวกเส้นเฝอให้สุกใส่ชาม","วางเนื้อวัวดิบบางๆบนเส้น ตักน้ำซุปร้อนราด","เสิร์ฟพร้อมถั่วงอก โหระพา มะนาว"]},
+ {id:28,name:"มูซากาผักกรีก",cuisine:"กรีก",emoji:"🍆",time:"1 ชม.",diff:"ปานกลาง",ingredients:["มะเขือม่วง 2 ลูก","เนื้อบดแกะ/วัว 300 ก.","มะเขือเทศบด หอมใหญ่ กระเทียม","ซอสเบชาเมล ชีสพาร์เมซาน"],steps:["หั่นมะเขือม่วงเป็นแผ่น ย่างหรือทอดพอสุก","ผัดเนื้อบดกับหอมกระเทียมและมะเขือเทศบด เคี่ยวให้ข้น","เรียงมะเขือม่วงสลับกับเนื้อในถาดอบ ราดซอสเบชาเมล","โรยชีส อบที่ 190°C ประมาณ 30-35 นาที"]},
+ {id:29,name:"ซาซิกิ-สลัดกรีก",cuisine:"กรีก",emoji:"🥙",time:"15 นาที",diff:"ง่าย",ingredients:["มะเขือเทศ แตงกวา หอมแดง","ชีสเฟต้า มะกอกดำ","น้ำมันมะกอก ออริกาโน มะนาว"],steps:["หั่นมะเขือเทศ แตงกวา หอมแดงเป็นชิ้นพอดีคำ","ใส่มะกอกดำและชีสเฟต้าก้อน","ราดน้ำมันมะกอกและน้ำมะนาว","โรยออริกาโนแห้ง คลุกเบาๆก่อนเสิร์ฟ"]},
+ {id:30,name:"เปาเอย่าซีฟู้ด",cuisine:"สเปน",emoji:"🥘",time:"50 นาที",diff:"ปานกลาง",ingredients:["ข้าวเปาเอย่า","กุ้ง หอยแมลงภู่ ปลาหมึก","หญ้าฝรั่น พริกหวาน มะเขือเทศ","น้ำซุปทะเล"],steps:["ผัดหอมกระเทียมพริกหวานในกระทะเปาเอย่า","ใส่ข้าวคั่วให้เคลือบน้ำมัน","เติมน้ำซุปผสมหญ้าฝรั่น เคี่ยวไม่คนบ่อย","วางซีฟู้ดด้านบนให้สุกพร้อมข้าว พักให้ก้นข้าวกรอบเล็กน้อย"]},
+ {id:31,name:"ชวาร์มาไก่",cuisine:"ตะวันออกกลาง",emoji:"🥙",time:"40 นาที",diff:"ง่าย",ingredients:["อกไก่หั่นแผ่น","โยเกิร์ต กระเทียม เครื่องเทศชวาร์มา","ขนมปังพิต้า","ผักกาดหอม มะเขือเทศ ซอสทาฮินี"],steps:["หมักไก่กับโยเกิร์ตและเครื่องเทศอย่างน้อย 30 นาที","ย่างหรือผัดไก่ไฟแรงจนสุกมีรอยไหม้","อุ่นขนมปังพิต้าให้นิ่ม","ใส่ไก่ ผัก และซอสทาฮินีลงในพิต้า ม้วนเสิร์ฟทันที"]},
+ {id:32,name:"นาซิโกเร็ง",cuisine:"อินโดนีเซีย",emoji:"🍛",time:"20 นาที",diff:"ง่าย",ingredients:["ข้าวสวยค้างคืน 2 ถ้วย","ไก่หรือกุ้ง","ซอสกะปิ/ซัมบัล","ไข่ดาว แตงกวา มะเขือเทศ"],steps:["ผัดกระเทียมหอมแดงกับซัมบัลให้หอม","ใส่ไก่หรือกุ้งผัดให้สุก","ใส่ข้าวผัดให้เข้ากันทั่ว ปรุงรส","ตักใส่จาน ท็อปด้วยไข่ดาวและผักสด"]},
+ {id:33,name:"ลักซาสิงคโปร์",cuisine:"สิงคโปร์",emoji:"🍜",time:"45 นาที",diff:"ปานกลาง",ingredients:["เส้นหมี่/เส้นบะหมี่ไข่","น้ำแกงกะทิลักซา","กุ้ง เต้าหู้ทอด","ถั่วงอก ใบสะระแหน่เวียดนาม"],steps:["ผัดพริกแกงลักซากับกะทิจนหอม","เติมน้ำซุปและกะทิที่เหลือ ต้มเดือด","ใส่กุ้งและเต้าหู้ทอดต้มให้สุก","ลวกเส้นใส่ชาม ราดน้ำแกง โรยถั่วงอกและใบสะระแหน่"]}
+];
+
+const safeStorage = {
+  get(key, fallback){ try{ return localStorage.getItem(key) ?? fallback; } catch(e){ return fallback; } },
+  set(key, value){ try{ localStorage.setItem(key, value); return true; } catch(e){ return false; } }
+};
+let initialFavs = [];
+try{ initialFavs = JSON.parse(safeStorage.get("kw_favs","[]")); }catch(e){ initialFavs = []; }
+
+const state = { query:"", cuisine:"ทั้งหมด", tab:"home", favs:initialFavs, openId:null };
+const cuisines = ["ทั้งหมด", ...new Set(RECIPES.map(r=>r.cuisine))];
+const $ = s => document.querySelector(s);
+const listEl = $("#list"), chipsEl = $("#chips"), searchEl = $("#search"), reader = $("#reader");
+
+function renderChips(){
+  chipsEl.innerHTML = cuisines.map(c =>
+    `<button class="chip ${c===state.cuisine?"active":""}" data-c="${c}">${c}</button>`
+  ).join("");
+  chipsEl.querySelectorAll(".chip").forEach(b => b.onclick = () => { state.cuisine = b.dataset.c; render(); });
+}
+
+function filtered(){
+  return RECIPES.filter(r=>{
+    const matchC = state.cuisine==="ทั้งหมด" || r.cuisine===state.cuisine;
+    const matchQ = r.name.toLowerCase().includes(state.query.toLowerCase());
+    const matchFav = state.tab!=="fav" || state.favs.includes(r.id);
+    return matchC && matchQ && matchFav;
+  });
+}
+
+function toggleFav(id){
+  state.favs = state.favs.includes(id) ? state.favs.filter(x=>x!==id) : [...state.favs, id];
+  safeStorage.set("kw_favs", JSON.stringify(state.favs));
+}
+
+function render(){
+  renderChips();
+  const list = filtered();
+  $("#count").textContent = `${list.length} เมนู`;
+  listEl.innerHTML = list.length ? list.map(r=>`
+    <div class="entry" data-open="${r.id}">
+      <div class="emoji">${r.emoji}</div>
+      <div>
+        <div class="meta-top">${r.cuisine} · ${r.time} · ${r.diff}</div>
+        <h3>${r.name}</h3>
+        <div class="sub">${r.ingredients.length} วัตถุดิบ · ${r.steps.length} ขั้นตอน</div>
+      </div>
+      <button class="fav-btn ${state.favs.includes(r.id)?"active":""}" data-fav="${r.id}" aria-label="บันทึกรายการโปรด">${state.favs.includes(r.id)?"♥":"♡"}</button>
+    </div>`).join("") : `<div class="empty">ไม่พบเมนูที่ค้นหา</div>`;
+
+  listEl.querySelectorAll("[data-open]").forEach(c=>c.onclick = () => openRecipe(+c.dataset.open));
+  listEl.querySelectorAll("[data-fav]").forEach(b=>b.onclick = (e)=>{
+    e.stopPropagation();
+    toggleFav(+b.dataset.fav);
+    render();
+  });
+}
+
+function openRecipe(id){
+  const r = RECIPES.find(x=>x.id===id);
+  state.openId = id;
+  $("#readerEmoji").textContent = r.emoji;
+  $("#readerCuisine").textContent = r.cuisine;
+  $("#readerName").textContent = r.name;
+  $("#readerMeta").innerHTML = `<span>${r.time}</span><span>ระดับ ${r.diff}</span>`;
+  $("#readerIngredients").innerHTML = r.ingredients.map((i,idx)=>
+    `<li data-idx="${idx}"><span class="box"></span><span class="txt">${i}</span></li>`
+  ).join("");
+  $("#readerSteps").innerHTML = r.steps.map((s,idx)=>
+    `<li><span class="step-num">${idx+1}</span><p>${s}</p></li>`
+  ).join("");
+  updateReaderFav();
+  reader.querySelectorAll(".ing-list li").forEach(li=> li.onclick = () => li.classList.toggle("checked"));
+  reader.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeReader(){
+  reader.classList.remove("open");
+  document.body.style.overflow = "";
+  render();
+}
+
+function updateReaderFav(){
+  const btn = $("#readerFav");
+  const active = state.favs.includes(state.openId);
+  btn.textContent = active ? "♥" : "♡";
+  btn.classList.toggle("active", active);
+}
+
+$("#backBtn").onclick = closeReader;
+$("#readerFav").onclick = () => { toggleFav(state.openId); updateReaderFav(); };
+
+searchEl.oninput = e => { state.query = e.target.value; render(); };
+
+$("#shuffleBtn").onclick = () => {
+  const pool = filtered();
+  if(!pool.length) return;
+  openRecipe(pool[Math.floor(Math.random()*pool.length)].id);
+};
+
+document.querySelectorAll("nav.tabbar button").forEach(b=>{
+  b.onclick = () => {
+    document.querySelectorAll("nav.tabbar button").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+    state.tab = b.dataset.tab;
+    render();
+  };
+});
+
+render();
+
+let deferredPrompt;
+window.addEventListener("beforeinstallprompt",(e)=>{
+  e.preventDefault(); deferredPrompt = e; $("#installToast").classList.add("show");
+});
+$("#installBtn").onclick = async () => {
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt(); await deferredPrompt.userChoice;
+  deferredPrompt = null; $("#installToast").classList.remove("show");
+};
+
 
 <script src="recipes.js"></script>
 <script src="app.js"></script>
