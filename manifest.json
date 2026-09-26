@@ -1,15 +1,11 @@
 {
-  "name": "ครัวโลก - สอนทำอาหารนานาชาติ",
+  "name": "ครัวโลก - สมุดสูตรอาหารนานาชาติ",
   "short_name": "ครัวโลก",
-  "description": "แอปสูตรอาหารและสอนทำอาหารจากทั่วโลก",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": ".",
   "display": "standalone",
-  "background_color": "#fff6ec",
-  "theme_color": "#e2622a",
-  "orientation": "portrait-primary",
+  "background_color": "#f4ecd8",
+  "theme_color": "#d99a1b",
   "icons": [
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]
 }
