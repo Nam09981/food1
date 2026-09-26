@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ครัวโลก - สอนทำอาหารนานาชาติ</title>
+<meta name="theme-color" content="#e2622a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>🍽️ ครัวโลก</h1>
+  <p>สูตรอาหารและวิธีทำจากทั่วทุกมุมโลก</p>
+</header>
+
+<div class="search-wrap">
+  <input id="search" type="text" placeholder="ค้นหาเมนู เช่น ผัดไทย, ซูชิ...">
+</div>
+
+<div class="chips" id="chips"></div>
+
+<div class="toolbar-row">
+  <span id="count" class="count"></span>
+  <button id="shuffleBtn" class="shuffle-btn">🎲 สุ่มเมนู</button>
+</div>
+
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+
+<div class="install-bar" id="installBar">
+  <span>📲 ติดตั้งแอปไว้ในเครื่อง</span>
+  <div>
+    <button id="installBtn">ติดตั้ง</button>
+    <button id="dismissInstall" style="background:transparent;color:#fff;margin-left:4px">✕</button>
+  </div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="sheet" id="sheet-content"></div>
+</div>
+
+<nav class="tabbar">
+  <button class="active" data-tab="home"><span>🏠</span>เมนูทั้งหมด</button>
+  <button data-tab="fav"><span>❤️</span>รายการโปรด</button>
+</nav>
+
+<script src="recipes.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
